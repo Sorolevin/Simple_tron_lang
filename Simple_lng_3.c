@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define MEM 100
 #define READ 10
 #define WRITE 11
@@ -33,16 +34,18 @@ typedef struct tableEntry {
 
 } data;
 
-int evaluatePostfixExpression_2(char *);
-int calculate_2(int, int, char);
+int evaluatePostfixExpression_2(char *, int memory_smp[], int *count_command);
+int calculate_2(int, int, char, int memory_smp[], int *count_command);
 void push_2(StackNodePtr_2 *, int);
 int pop_2(StackNodePtr_2 *);
 int isEmpty_2(StackNodePtr_2);
+
+
+
 int isOperator_2(char c);
 
 void convertToPostfix_1(char infix[], char postfix[]);
 int search_in_table(data *intro_search, int str_tok_search);
-int evaluatePostfixExpression_2(char *);
 int rem_break(char *token);
 int let_past(data *base, char *infix, char *post_infix);
 
@@ -70,24 +73,29 @@ int main(void) {
   int token_string_count = 0;
   data symbolTable[100];
 
-  int d = 0;
-  int flags[100];
-  int mem_smp[100];
+  int d = 0, lz = 0;
 
+  int flags[100];
+  int dz = 0;
+  int mem_smp[100];
+  char copy_buf_data[150][150] = {{0}};
   char post_buf[150];
 
   int count_cmd = 0;
   int lng = 0;
-
-  FILE *mf;
+  int nm = 0;
+  FILE *file_buf;
   char *bufer = 0;
-  int dz = 0;
+  char *intro_bufer = 0;
+  int save_left_side = 0, save_exp = 0;
+
+  int count_table_intro = 0;
+  int count_table_extro = 0;
+
   char bufer_postfix[150];
-
+  char data_txt[1000] = {};
+  char str[100] = {};
   char buf_data[150][150] = {{0}};
-
-  char expr[] = "t = (t +  45 / 3 )  + (4 * 45) + t / (3 - 21) + 21 - g * 45";
-  // char expr[] = "d = (g +  2 / s )  + (5 * 5) + 87 / (3 - 1) + 211 - w * 45";
 
   for (; d != 100; d++) {
 
@@ -98,65 +106,104 @@ int main(void) {
     flags[d] = -1;
   }
 
-  strcpy(infix, expr);
-  convertToPostfix_1(infix, postfix);
+  /* parsing  lettery
+     char expr[] = "d = (g +  2 / s )  + (5 * 5) + 87 / (3 - 1) + 211 - w * 45";
+    strcpy(infix, expr);
+    convertToPostfix_1(infix, postfix);
+    save_left_side = let_past(symbolTable, postfix, post_buf);
+    save_exp = evaluatePostfixExpression_2(post_buf, mem_smp, &count_cmd);
+    mem_smp[count_cmd] = (2000 + save_exp);
+    count_cmd++;
+    mem_smp[count_cmd] = (2100 + save_left_side);
+    */
 
-  dz = let_past(symbolTable, postfix, post_buf);
-  puts(post_buf);
-  printf("%d\n", dz);
+  file_buf = fopen("in.smp", "r");
 
-  /*
-    printf("Postfix expression: %s\n", postfix);
+  for (; feof(file_buf) == 0; ++lng) {
 
-   d = evaluatePostfixExpression_2( postfix );
-   printf("Result: %d\n", d);
-  */
-
-  char data_txt[1000] = {};
-  char str[100] = {};
-
-  // mf = fopen ("rt.smp","r");
-
-  /*
-  for ( ;feof (mf) == 0 ;     ++lng)  {
-
-          fgets ( &buf_data[lng][0]    ,150,mf );
-
-    }
-
-    fclose (mf) ;
-
-
-
-  for(d = 0  ;buf_data[d][0] != 0  ;++d  ){
-
-          bufer = strtok( &buf_data[d][0] , " " );
-
-          for (token_string_count = 0   ;bufer !=  NULL;  token_string_count++,
-  bufer = strtok ( NULL , " " ) ){
-
-
-                  if( strcmp(bufer , "print" ) == 0 ||  strcmp(bufer , "input" )
-  == 0   ){ dz  =  search_cmd( dictionary , bufer  );
-                                          //printf("%d\n", dz );
-                                          printf("%s %s\n", dictionary[dz] ,
-  dictionary[dz + 1]   );
-                          }
-
-
-
-
-                  if(	rem_break(bufer  )  == 1){
-                          break;
-                  }
-
-          }
-
-
-
+    fgets(&buf_data[lng][0], 150, file_buf);
   }
 
-  */
+  fclose(file_buf);
+
+  for (d = 0; d != 149; d++) {
+    /*
+        for (nm = 0; buf_data[d][nm] != '\n'; nm++) {
+
+          copy_buf_data[d][nm] = buf_data[d][nm];
+        }
+    */
+    strcpy((*(copy_buf_data + d)), (*(buf_data + d)));
+  }
+
+  // printf("%s\n", &copy_buf_data[0][0]);
+
+  for (d = 0; buf_data[d][0] != 0; d++) {
+
+    bufer = strtok(&buf_data[d][0], " ");
+
+    for (; bufer != NULL;) {
+
+      if (token_string_count == 0 && isdigit(*bufer)) {
+        //	puts(bufer);
+      //  printf("bufer first %s\n", bufer);
+        
+        
+        count_table_intro =  search_in_table(symbolTable, 0);
+        (symbolTable + count_table_intro)->symbol =  atoi(buferzz); //  or  str_tok don't atoi
+        (symbolTable + count_table_intro)->type = 'L';
+        (symbolTable + count_table_intro)->location = count_table_extro;
+        
+      }
+
+      else if (strcmp(bufer, "let") == 0) {
+       // printf("intro_let%s\n", &copy_buf_data[d][7]);
+
+        strcpy(infix, &copy_buf_data[d][7]);
+        convertToPostfix_1(infix, postfix);
+        save_left_side = let_past(symbolTable, postfix, post_buf);
+        
+      
+        save_exp = evaluatePostfixExpression_2(post_buf, mem_smp, &count_cmd);
+        mem_smp[count_cmd] = (2000 + save_exp);
+        count_cmd++;
+
+        mem_smp[count_cmd] = (2100 + save_left_side);
+        count_cmd++;
+
+        count_table_extro++;
+      }
+
+      /*
+      else if  (strcmp(bufer, "print") == 0 || strcmp(bufer, "input") == 0) {
+         dz = search_cmd(dictionary, bufer);
+         // printf("%d\n", dz );
+         printf("%s %s\n", dictionary[dz], dictionary[dz + 1]);
+       }
+
+
+        else if (strcmp(bufer, "if") == 0) {
+
+
+       }
+
+ */
+      if (rem_break(bufer) == 1) {
+        break;
+      }
+      bufer = strtok(NULL, " ");
+    }
+  }
+
+  
+
+
+
+
+  
+  for (d = 0; mem_smp[d] != 0; d++) {
+    printf("mem_smp =  %d\n", mem_smp[d]);
+  }
 
   return 0;
 }
@@ -171,14 +218,12 @@ int let_past(data *base, char *infix, char *post_infix) {
   past_in_table_cons_or_value(base, infix[0]);
 
   bufer = strtok(&infix[1], "  ");
+  
+  for (; bufer != (char *)'\0';  post_infix[lng++] = ' ', bufer = strtok(NULL, " ")) {
 
-  for (; bufer != (char *)'\0';
-       post_infix[lng++] = ' ', bufer = strtok(NULL, " ")) {
+    if ( isdigit( *bufer) || isalpha(*bufer)) {
 
-    if (isdigit(*bufer) || isalpha(*bufer)) {
-
-      data_adress = past_in_table_cons_or_value(
-          base, isdigit(*bufer) ? atoi(bufer) : *bufer);
+      data_adress = past_in_table_cons_or_value( base, isdigit(*bufer) ? atoi(bufer) : *bufer);
 
       sprintf(&post_infix[lng], "%d", data_adress);
       lng += 2;
@@ -193,8 +238,9 @@ int let_past(data *base, char *infix, char *post_infix) {
   post_infix[lng] = '\0';
   left_side = search_in_table(base, infix[0]);
 
-  return left_side;
+  return (base + left_side)->location;
 }
+
 
 int rem_break(char *token) {
 
@@ -204,20 +250,30 @@ int rem_break(char *token) {
   return 0;
 }
 
-/* ����� ������ ������� sml  */
 int search_in_table(data *intro_search, int str_tok_search) {
 
-  int runner = 99, last_point = 0;
+int d ;
+
+for (d = 0; d != 15; d++) {
+
+
+printf(isalpha((intro_search + d)->symbol) ? "%c- %c - %d\n"  : "%d - %c - %d\n",  (intro_search + d)->symbol, (intro_search + d)->type, (intro_search + d)->location);
+  
+  }
+
+
+int runner = 0, last_point = 0;
+printf("char in search %c \n", (char)str_tok_search );
+
 
   while (1) {
 
-    if ((intro_search + runner)->symbol == str_tok_search ||
-        runner == count_down) {
+    if ((intro_search + runner)->symbol == str_tok_search ||  (intro_search + runner)->symbol == 0) {
 
       last_point = runner;
       break;
     }
-    runner--;
+    runner++;
   }
   return last_point;
 }
@@ -227,16 +283,19 @@ int past_in_table_cons_or_value(data *table, int str_tok) {
   int search_in_table(data * intro_search, int str_tok_search);
 
   int find = search_in_table(table, str_tok);
-  // ������� ����� ���� ����
-  if ((table + find)->symbol == 0) {
+ 
+ 
+  if ((table + find)->type == 'q' ) {
 
     (table + find)->symbol = str_tok; //  or  str_tok don't atoi
-    (table + find)->type = isalpha(str_tok) == 2 ? 'V' : 'C';
-    (table + count_down)->location = count_down;
+    (table + find)->type = isalpha(str_tok)  ? 'V' : 'C';
+    
+    
+    (table + find)->location = count_down;
 
     count_down--;
   }
-  // ����� �����  ��  ������  sml
+
   return (table + find)->location;
 }
 
@@ -275,7 +334,8 @@ int goto_search(data *table, int token) {
   return 0;
 }
 
-int evaluatePostfixExpression_2(char *expr) {
+int evaluatePostfixExpression_2(char *expr, int memory_smp[],
+                                int *count_command) {
   StackNodePtr_2 stackPtr = NULL;
   char c;
   int x, y;
@@ -307,7 +367,7 @@ int evaluatePostfixExpression_2(char *expr) {
       }
       y = pop_2(&stackPtr);
 
-      push_2(&stackPtr, calculate_2(y, x, c));
+      push_2(&stackPtr, calculate_2(y, x, c, memory_smp, &(*count_command)));
     }
     i++;
   }
@@ -320,28 +380,70 @@ int evaluatePostfixExpression_2(char *expr) {
   return pop_2(&stackPtr);
 }
 
-int calculate_2(int op1, int op2, char operator) {
+int calculate_2(int op1, int op2, char operator, int memory_smp[],
+                int *count_command) {
+
   int result = 0;
 
   switch (operator) {
   case '+':
-    result = op1 + op2;
+
+    memory_smp[*count_command] = (2000 + op1);
+    (*count_command)++;
+
+    memory_smp[*count_command] = (3000 + op2);
+    (*count_command)++;
+
+    memory_smp[*count_command] = (2100 + count_down);
+
+    (*count_command)++;
+    result = count_down;
+    count_down--;
+
+    // result = op1 + op2;
     break;
   case '-':
-    result = op1 - op2;
+    memory_smp[*count_command] = (2000 + op1);
+    (*count_command)++;
+    memory_smp[*count_command] = (3100 + op2);
+    (*count_command)++;
+    memory_smp[*count_command] = (2100 + count_down);
+    (*count_command)++;
+    result = count_down;
+    count_down--;
+    // result = op1 - op2;
     break;
   case '*':
-    result = op1 * op2;
+    memory_smp[*count_command] = (2000 + op1);
+    (*count_command)++;
+    memory_smp[*count_command] = (3300 + op2);
+    (*count_command)++;
+    memory_smp[*count_command] = (2100 + count_down);
+    (*count_command)++;
+    result = count_down;
+    count_down--;
+    // result = op1 * op2;
     break;
   case '/':
-    result = op1 / op2;
+
+    memory_smp[*count_command] = (2000 + op1);
+    (*count_command)++;
+    memory_smp[*count_command] = (3200 + op2);
+    (*count_command)++;
+    memory_smp[*count_command] = (2100 + count_down);
+    (*count_command)++;
+    result = count_down;
+    count_down--;
+    //   result = op1 / op2;
     break;
+  /*
   case '^':
     result = pow(op1, op2);
     break;
   case '%':
     result = op1 % op2;
     break;
+  */
   default:
     break;
   }
